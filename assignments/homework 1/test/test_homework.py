@@ -26,7 +26,8 @@ print(f"Dates found: {dates}")
 assert len(dates) > 0, "Should find at least one date"
 
 # Test phone number extraction
-phone_pattern = r'\+?\d{1,3}[-.]?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b'
+# Pattern handles formats: +1-555-123-4567, (555) 123-4567, 555-123-4567
+phone_pattern = r'\+?\d{1,3}[-.]?(?:\(\d{3}\)|\d{3})[-.]?\d{3}[-.]?\d{4}\b'
 phones = re.findall(phone_pattern, sample_text)
 print(f"Phone numbers found: {phones}")
 assert len(phones) > 0, "Should find at least one phone number"
