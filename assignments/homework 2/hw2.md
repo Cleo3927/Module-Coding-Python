@@ -1,25 +1,89 @@
+# Homework 2
+# Web Scraping Assignment
+# Website: https://books.toscrape.com
+# Goal: Scrape book data (title, price, availability) across multiple pages.
 
-## Assignment - Choose Your Own List Page & Navigate It
+#Imports
+import requests
+from bs4 import BeautifulSoup
+from dataclasses import dataclass
+from typing import List, Optional, Dict
+import csv
+import time
+from urllib.parse import urljoin
 
-**Your task:** Pick a website that lists items across **multiple pages** (e.g., quotes, articles, products, events).  
-Avoid login walls and sites that forbid scraping. Educational sandboxes like `books.toscrape.com` are fine, but feel free to choose your own.
 
-### Requirements
-1. **Describe the target** (1–2 sentences): what you’re scraping and why it’s suitable.
-2. **Inspect with DevTools**: include 1–2 screenshots highlighting the key request and the HTML structure you’ll parse.
-3. **Fetcher**: implement a typed function  
-   `fetch_html(url: str, headers: Optional[Dict[str, str]] = None, timeout_s: float = 15.0) -> str`  
-   (you may reuse ours).
-4. **Parser**: implement a typed function that extracts at least **three fields** per item (e.g., title, author, date/tags).
-   - Return type: `list[tuple[str, str, list[str]]]` or a `dataclass`. If not applicable, use `list[dict[str, Any]]`.
-5. **Pagination**: follow “Next” (or numbered pages) until you collect **≥ 50 items** (or exhaust pages).
-6. **CSV export**: save to a CSV with **`;`** as the separator; if you have a list field, join with **`,`**.
-7. **Politeness**: add a small `time.sleep` between requests; keep a `max_pages` cap.
-8. **Documentation**: brief markdown section summarizing **what worked**, **what broke**, and **how you handled it**.
+#1. Fetcher Function
+def fetch_html(url: str, headers: Optional[Dict[str, str]] = None, timeout_s: float = 15.0) -> str:
+    """
+    Fetch HTML content from the given URL with optional headers and timeout.
+    """
+    response = requests.get(url, headers=headers, timeout=timeout_s)
+    response.raise_for_status()
+    return response.text
 
-### Deliverables
-- Notebook with completed cells and your screenshots.
-- A CSV file in the repo (or alongside the notebook).
 
-### Deadline
-- Submit by **Thursday, October 30, 2025 at 09:45** (start of class).
+#2. Dataclass Definition
+@dataclass
+class Book:
+    title: str
+    price: str
+    availability: str
+
+
+#3. Parser Function
+def parse_books(html: str) -> List[Book]:
+    """
+    Parse book details from a Books to Scrape HTML page.
+    Extracts title, price, and availability for each book.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    books = []
+    for article in soup.select("article.product_pod"):
+        title = article.h3.a["title"].strip()
+        price = article.select_one("p.price_color").text.strip()
+        availability = article.select_one("p.instock.availability").get_text(strip=True)
+        books.append(Book(title, price, availability))
+    return books
+
+
+#4. Pagination Logic
+base_url = "https://books.toscrape.com/catalogue/"
+url = "https://books.toscrape.com/catalogue/page-1.html"
+
+all_books = []
+max_pages = 10  # safety limit
+page_count = 0
+
+while url and page_count < max_pages and len(all_books) < 50:
+    print(f"Fetching: {url}")
+    html = fetch_html(url)
+    books = parse_books(html)
+    all_books.extend(books)
+    print(f"  Collected {len(books)} books from this page (total so far: {len(all_books)})")
+
+    # Politeness delay
+    time.sleep(1)
+
+    # Find next page
+    soup = BeautifulSoup(html, "html.parser")
+    next_link = soup.select_one("li.next > a")
+    if next_link:
+        next_href = next_link["href"]
+        url = urljoin(url, next_href)
+        page_count += 1
+    else:
+        url = None
+
+print(f"\n Total books collected: {len(all_books)}")
+
+
+#5. CSV Export
+csv_path = "books.csv"
+with open(csv_path, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(["Title", "Price", "Availability"])
+    for book in all_books:
+        writer.writerow([book.title, book.price, book.availability])
+
+print(f"CSV file saved as: {csv_path}")
