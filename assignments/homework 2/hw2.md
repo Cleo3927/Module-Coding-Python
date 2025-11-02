@@ -1,25 +1,6 @@
-
-## Assignment - Choose Your Own List Page & Navigate It
-
-**Your task:** Pick a website that lists items across **multiple pages** (e.g., quotes, articles, products, events).  
-Avoid login walls and sites that forbid scraping. Educational sandboxes like `books.toscrape.com` are fine, but feel free to choose your own.
-
-### Requirements
-1. **Describe the target** (1–2 sentences): what you’re scraping and why it’s suitable.
-2. **Inspect with DevTools**: include 1–2 screenshots highlighting the key request and the HTML structure you’ll parse.
-3. **Fetcher**: implement a typed function  
-   `fetch_html(url: str, headers: Optional[Dict[str, str]] = None, timeout_s: float = 15.0) -> str`  
-   (you may reuse ours).
-4. **Parser**: implement a typed function that extracts at least **three fields** per item (e.g., title, author, date/tags).
-   - Return type: `list[tuple[str, str, list[str]]]` or a `dataclass`. If not applicable, use `list[dict[str, Any]]`.
-5. **Pagination**: follow “Next” (or numbered pages) until you collect **≥ 50 items** (or exhaust pages).
-6. **CSV export**: save to a CSV with **`;`** as the separator; if you have a list field, join with **`,`**.
-7. **Politeness**: add a small `time.sleep` between requests; keep a `max_pages` cap.
-8. **Documentation**: brief markdown section summarizing **what worked**, **what broke**, and **how you handled it**.
-
-### Deliverables
-- Notebook with completed cells and your screenshots.
-- A CSV file in the repo (or alongside the notebook).
-
-### Deadline
-- Submit by **Thursday, October 30, 2025 at 09:45** (start of class).
+<img width="1400" height="900" alt="screenshot_html_structure" src="https://github.com/user-attachments/assets/b14f081c-44cb-4766-903f-4b1fb5a8cf09" />
+<img width="1400" height="900" alt="screenshot_network" src="https://github.com/user-attachments/assets/daefbebb-1a29-4e2b-b31f-f2c477c6f1cf" />[github_trending_scraper.ipynb](https://github.com/user-attachments/files/23293087/github_trending_scraper.ipynb)
+[github_trending_repos.csv](https://github.com/user-attachments/files/23293086/github_trending_repos.csv)
+[DOCUMENTATION.md](https://github.com/user-attachments/files/23293085/DOCUMENTATION.md)
+[README.md](https://github.com/user-attachments/files/23293084/README.md)
+[devtools_inspection.html](https://github.com/user-attachments/files/23293083/devtools_inspection.html)
