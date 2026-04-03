@@ -1,0 +1,157 @@
+# ========================================
+# Homework 1: Regex + NLP Preprocessing
+# Text: Travel Blog Road Trip
+# ========================================
+
+# 1. Data & Context
+
+text = """
+Last summer, on July 12, 2025, I embarked on a road trip across the Pacific Northwest. It was something I had been planning for months, and I shared my itinerary with fellow travelers at wanderlustclub@gmail.com.
+
+The journey started in Seattle, Washington. I stayed at a cozy Airbnb (contact: +1-206-555-3142) near Pike Place Market. The first morning, I explored the iconic market and tried some fresh seafood. My favorite stall, “Ocean Delights,” even gave me a card to contact them for future orders: ocean.delights@seafoodmail.com.
+
+From Seattle, I drove along the scenic Highway 101, stopping at several viewpoints. On July 15, 2025, I reached Olympic National Park. The hiking trails were breathtaking. I met other hikers and shared photos using hashtags like #PNWAdventures and #HikeLife. Some shared their own blogs, including https://explorenorthwest.com/trails-guide.
+
+During the trip, I made a few hotel reservations. One particularly memorable stay was at the Rainier Lodge, booked via https://rainierlodge.com/reservations. They confirmed my booking for July 17–19, 2025, and also gave a local contact number (+1-360-555-7281) in case of emergencies.
+
+Portland, Oregon, was my next stop. I joined a guided food tour and tried some amazing local dishes. The guide suggested reaching out to him at tastytrails@foodies.net for personalized recommendations. Over three days, I also visited Powell’s City of Books and caught a small live music event at https://portlandmusiclive.org/events.
+
+I logged daily expenses in a notebook. Some numbers to remember:
+Gas for the trip: 
+276
+National park entrance fees: $58
+
+While driving through Oregon’s coastline, I met a family who was on vacation from New York. They shared their contact info for future travel plans: +1-917-555-6620. They also recommended using the hashtag #CoastalWonders to find the best photo spots.
+
+One challenge I faced was sudden rain near Cannon Beach. I tweeted for advice at @TravelTipsOfficial and got multiple responses, some including URLs like https://weatheralerts.com/pnw.
+
+The trip concluded in Portland on July 22, 2025, where I took a flight back home. I documented the entire journey on my blog, with photos, travel tips, and budget breakdowns: https://mytraveljournal.net/pnw-road-trip. Readers can also email me at myjournal.contact@travelsite.org for itinerary templates or advice.
+
+Some highlights worth mentioning:
+Hiking miles covered: 42.3 miles
+Total cities visited: 3 (Seattle, Olympic NP, Portland)
+Social media posts shared: 57
+
+If anyone plans a similar trip, I highly recommend following these hashtags for inspiration: #WanderlustPNW, #NatureLovers, and #RoadTripGoals. For emergency contacts, always save local numbers, like the Seattle Airbnb (+1-206-555-3142) and Rainier Lodge (+1-360-555-7281).
+
+Finally, my favorite moment was watching the sunset over Cannon Beach on July 18, 2025. It’s a memory I’ll cherish forever and a reminder that the Pacific Northwest is a paradise for nature lovers.
+"""
+
+# Data and Context comment
+# Source: ChatGPT generated travel blog text by my request.
+# Reason: I chose ChatGPT to create a suitable travel blog text with various linguistic patterns because it can generate really good text, perfect for coding practice.
+
+
+# 2️ Regex Extraction
+
+import re
+
+patterns = {
+    "Emails": r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+    "PhoneNumbers": r"\+?\d{1,3}[-\s]?\d{3}[-\s]?\d{3}[-\s]?\d{4}",
+    "Dates": r"\b\d{1,2}/?\d{1,2}/?\d{2,4}\b|July\s\d{1,2},\s\d{4}",
+    "Hashtags": r"#\w+",
+    "URLs": r"https?://[A-Za-z0-9./_-]+",
+    "Numbers": r"\b\d+(?:\.\d+)?\b"
+}
+
+for label, pat in patterns.items():
+    matches = re.findall(pat, text)
+    print(f"--- {label} ---")
+    print(matches)
+
+
+# 3️ NLP Preprocessing
+
+from collections import Counter
+
+def tokenize(text):
+    return re.findall(r"[A-Za-z]+", text)
+
+def normalize(tokens):
+    return [t.lower() for t in tokens]
+
+STOP_WORDS = {
+    'a','an','the','and','or','of','on','in','to','is','are','as','from','this','it','i','you','at','for','with','while','if','my','they','their','also'
+}
+
+def remove_stopwords(tokens):
+    return [t for t in tokens if t not in STOP_WORDS]
+
+def toy_lemmatize(token):
+    if token.endswith('ies') and len(token) > 4:
+        return token[:-3]+'y'
+    if token.endswith('s') and len(token) > 3:
+        return token[:-1]
+    if token.endswith('ing') and len(token) > 5:
+        return token[:-3]
+    return token
+
+def pipeline(text):
+    tokens = tokenize(text)
+    tokens = normalize(tokens)
+    tokens = remove_stopwords(tokens)
+    tokens = [toy_lemmatize(t) for t in tokens]
+    return tokens
+
+processed_tokens = pipeline(text)
+print("\nProcessed tokens (first 40):", processed_tokens[:40])
+
+top_tokens = Counter(processed_tokens).most_common(15)
+print("\nTop 15 tokens:", top_tokens)
+
+
+# 4️ Regex + NLP Combo
+
+clean_text = re.sub(r"\s+", " ", text)
+number_noun_pairs = re.findall(r"(\d+(?:\.\d+)?)\s+([A-Za-z]+)", clean_text)
+print("\nNumber–Noun pairs:", number_noun_pairs)
+
+
+# 5️ Visualization
+
+import matplotlib.pyplot as plt
+
+words, freqs = zip(*top_tokens)
+plt.bar(words, freqs)
+plt.xticks(rotation=45)
+plt.title("Top 15 Tokens After Preprocessing")
+plt.ylabel("Frequency")
+plt.show()
+
+comments = """
+6️ Comments explaining each step:
+
+Regex extraction. I used a set of patterns (emails, phone numbers, dates, hashtags, URLs, numbers) to automatically extract entities from the text.
+The results are displayed as lists, which makes verification easy.
+
+NLP preprocessing. I chose simple rule-based lemmatization (the toy_lemmatize function) instead of aggressive stemming to keep the word bases more readable
+(for example, "hiking" - "hik" would be less informative).
+
+Regex + NLP combo. For the combined extraction, I found (number, following word) pairs in the text this is useful for linking numbers with entities
+(like costs, distances, or counts). This rule quickly produced useful pairs but may include false matches when punctuation or parentheses appear near numbers.
+
+Visualization. I created a bar chart of the top 15 token frequencies after preprocessing to visually show the dominant words.
+The chart helps quickly identify which words occur most often.
+
+Reproducibility. The notebook runs from top to bottom and includes the text itself as a variable (text),
+so anyone can reproduce the experiment without external files.
+All key results (lists of matches, top tokens, number–noun pairs, and the chart) are displayed in cells and
+it’s enough to run the notebook sequentially.
+"""
+
+print(comments)
+
+
+
+
+# 7 Report
+
+report = """
+Report Summary:
+For this assignment, I followed the instructions provided by my teacher to extract and preprocess text using regex and basic NLP techniques. The process started with finding a suitable text containing many patterns like emails, URLs, hashtags, dates, and numbers.
+I searched news articles and Twitter posts but couldn’t find anything suitable, so I used ChatGPT to generate a travel blog, which worked perfectly for practicing the code.
+The challenging part for me was lemmatization. I tried to convert words to their base forms, which is more complicated than simple stemming since it requires understanding grammar and word meaning. My implementation was a simplified version using rules, but I think it was worth it because it made the text look cleaner.
+Overall, I enjoyed working on this task. It was the first time I did something like this, so especially with lemmatization, I asked AI to explain it to me. This task helped me understand how regex and lightweight NLP can structure real-world text. For example, regex successfully extracted emails, phone numbers, dates, URLs, hashtags, and numbers, while NLP preprocessing produced meaningful tokens like seattle, portland, hiking, and trip.
+"""
+print(report)
